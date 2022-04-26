@@ -38,4 +38,31 @@ RSpec.describe "Posts", type: :request do
     end
   end
 
+  describe "POST /recipes" do
+    it "creates a new blog post" do
+
+      user = User.create!(name: "Test", email: "test@test.com", password: "password")
+
+      jwt = JWT.encode(
+        {user_id: user.id, exp: 24.hours.from_now.to_i},
+        Rails.application.credentials.fetch(:secret_key_base), "HS256"
+      )
+      
+      post "/posts",
+      params: {
+        user_id: user.id,
+        title: "Test Title",
+        body: "Blah blah blah words words words.",
+        image: "an_image_url"
+      },
+      headers: {"Authorization" => "Bearer #{jwt}"}
+
+      post = JSON.parse(response.body)
+
+      expect(response).to have_http_status(200)
+      expect(post["title"]).to eq("Test Title")
+      expect(post["body"]).to eq("Blah blah blah words words words.")
+    end
+  end
+
 end
